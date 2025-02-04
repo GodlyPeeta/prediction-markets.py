@@ -1,2 +1,4 @@
 tempCodeRunnerFile.python
 *.pyc
+dist/
+__pycache__/

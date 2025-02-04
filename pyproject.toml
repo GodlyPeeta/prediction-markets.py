@@ -1,0 +1,12 @@
+[project]
+name = "prediction-markets.py"
+version = "0.1"
+description = "Wraps multiple prediction market's API into one lightweight & simple Python interface"
+readme = "README.md"
+authors = [
+    {name = "Peter Zhou", email = "peterzhou561@gmail.com"},
+]
+
+[project.urls]
+Homepage = "https://github.com/GodlyPeeta/python-prediction-markets"
+Issues = "https://github.com/GodlyPeeta/python-prediction-markets/issues"
