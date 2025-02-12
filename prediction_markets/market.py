@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+from enums import *
 
 class Market:
     """ Represents a single market. 
@@ -48,13 +49,13 @@ class OrderBook:
     def __init__(self):
         pass
 
-    def update_book(self, yes: list[list[int]]=None, no: list[list[int]]=None):
+    def update_book(self, yes: list[list[int]]=None, no: list[list[int]]=None) -> None:
         """ Updates the books. Provide with None for no change
         """
         self.yes = yes if yes is not None else self.yes
         self.no = no if no is not None else self.no
 
-    def get_best_orders(side: str) -> int:
+    def get_best_orders(side: Side) -> int:
         """ Gets the best price and quantity for yes/no
         """
         pass
