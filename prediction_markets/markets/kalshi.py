@@ -1,9 +1,16 @@
 from market import *
+from client import *
 import requests
 from datetime import datetime
+from enums import *
+from enum import Enum
 
 root="https://api.elections.kalshi.com/trade-api/v2"
 demoRoot="https://demo-api.kalshi.co/trade-api/v2"
+
+class Environment(Enum):
+    DEMO = "demo",
+    PROD = "prod"
 
 class KalshiMarket(Market):
     """ A market on Kalshi
@@ -19,9 +26,9 @@ class KalshiMarket(Market):
     last_refreshed_book: datetime
 
     ticker: str # the ticker used as id on kalshi
-    demo: bool # whether to use the demo API or the regular API
+    environment: Environment # demo or prod
 
-    def __init__(self, ticker, demo=False):
+    def __init__(self, ticker, demo=Environment.PROD):
         super().__init__()
         self.ticker = ticker
         self.demo = demo
@@ -29,7 +36,7 @@ class KalshiMarket(Market):
     def _get_api_root(self) -> str:
         """ Gets the api root URL for endpoints
         """
-        if self.demo:
+        if self.demo == Environment.PROD:
             return demoRoot
         else:
             return root
@@ -58,8 +65,32 @@ class KalshiMarket(Market):
             raise KalshiRequestError(f"Recieved status code {data.status_code} instead of 200. Ticker: {self.ticker}")
         
         dataJSON = data.json()['orderbook']
-        self.book.update_book(dataJSON['yes'], dataJSON['no'])
+        self.book.update_book(dataJSON['YES'], dataJSON['NO'])
 
+
+# TODO: test
+# example code from kalshi demo: https://github.com/Kalshi/kalshi-starter-code-python/blob/main/clients.py
+#                                https://github.com/Kalshi/kalshi-starter-code-python/blob/main/main.py
+#                                https://trading-api.readme.io/reference/api-keys
+class KalshiClient(Client):
+    """ A single client on Kalshi. Uses HTTP connections
+    """
+    key_id: str
+    private_key: str
+    environment: Environment
+    
+
+class KalshiOrder(Order):
+    """ An order on Kalshi
+    """
+    client: Client
+    market: Market
+    placed_price: float # price per share when the order was placed
+    quantity: float
+    side: Side
+    
+    def __init__(self, client, market, placed_price, quantity, side):
+        super().__init__(client, market, placed_price, quantity, side)
     
 class KalshiRequestError(Exception):
     pass
