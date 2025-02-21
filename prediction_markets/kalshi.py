@@ -85,7 +85,7 @@ class KalshiClient(Client):
     private_key: str
     environment: Environment
 
-    def KalshiGetMarkets(self, limit: int, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
+    def kalshi_get_markets(self, limit: int, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
         """ Gets <limit> markets from the <cursor> that have the given <status>. 
         Returns a list that contains a list of markets and the next cursor, respectively.
         
