@@ -36,7 +36,7 @@ class KalshiMarket(Market):
     def _get_api_root(self) -> str:
         """ Gets the api root URL for endpoints
         """
-        if self.demo == Environment.PROD:
+        if self.demo == Environment.DEMO:
             return demoRoot
         else:
             return root
