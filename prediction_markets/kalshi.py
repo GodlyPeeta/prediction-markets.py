@@ -1,9 +1,9 @@
-from market import *
-from client import *
+from .market import *
+from .client import *
 import requests
 from datetime import datetime
-from enums import *
 from enum import Enum
+from .enums import *
 
 root="https://api.elections.kalshi.com/trade-api/v2"
 demoRoot="https://demo-api.kalshi.co/trade-api/v2"

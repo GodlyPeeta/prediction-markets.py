@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from enums import *
+from .enums import *
 
 class Market:
     """ Represents a single market. 

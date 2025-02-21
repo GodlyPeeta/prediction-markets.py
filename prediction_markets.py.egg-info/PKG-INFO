@@ -1,0 +1,25 @@
+Metadata-Version: 2.2
+Name: prediction-markets.py
+Version: 0.1a0
+Summary: Wraps multiple prediction market's API into one lightweight & simple Python interface
+Author-email: Peter Zhou <peterzhou561@gmail.com>
+Project-URL: Homepage, https://github.com/GodlyPeeta/python-prediction-markets
+Project-URL: Issues, https://github.com/GodlyPeeta/python-prediction-markets/issues
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+WIP
+
+# Python Prediction Markets
+Lightweight Python wrapper that combines the trading API of various markets into one interface.
+
+### Markets Currently Supported:
+- [Kalshi](https://kalshi.com/)
+- [Polymarket](https://polymarket.com/)
+
+### Planned:
+- [Manifold](https://manifold.markets/home)
+
+# Usage
+
+TODO

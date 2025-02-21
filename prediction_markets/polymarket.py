@@ -1,4 +1,4 @@
-from market import *
+from .market import *
 import requests
 from datetime import datetime
 

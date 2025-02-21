@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
-from market import *
-from enums import *
+from .market import *
+from .enums import *
 
 class Client:
     """ A single user client on a platform. Contains all the info required to place trades

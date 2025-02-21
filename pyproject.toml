@@ -1,6 +1,6 @@
 [project]
 name = "prediction-markets.py"
-version = "0.1"
+version = "0.1a"
 description = "Wraps multiple prediction market's API into one lightweight & simple Python interface"
 readme = "README.md"
 authors = [
