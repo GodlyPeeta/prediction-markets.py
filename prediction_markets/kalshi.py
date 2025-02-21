@@ -83,7 +83,21 @@ class KalshiClient(Client):
     """
     key_id: str
     private_key: str
+    logged_in: bool
+
     environment: Environment
+    
+    def __init__(self, key_id: str=None, private_key: str=None, environment: Environment=Environment.PROD):
+        super().__init__()
+        self.key_id = key_id if key_id is not None else None
+        self.private_key = private_key if private_key is not None else None
+        self.environment = environment
+
+        if key_id is None or private_key is None:
+            self.logged_in = False
+        else:
+            self.logged_in = True
+
 
     def kalshi_get_markets(self, limit: int, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
         """ Gets <limit> markets from the <cursor> that have the given <status>. 
