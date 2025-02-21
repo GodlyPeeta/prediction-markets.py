@@ -37,6 +37,7 @@ class KalshiMarket(Market):
     ticker: str # the ticker used as id on kalshi
     environment: Environment # demo or prod
 
+
     def __init__(self, ticker, demo=Environment.PROD):
         super().__init__()
         self.ticker = ticker
@@ -46,6 +47,19 @@ class KalshiMarket(Market):
         """ Gets the api root URL for endpoints
         """
         return get_api_root(self.environment)
+    
+    def _load_data(self, dataJSON: dict) -> None:
+        """ Interprets data given from the Kalshi API and refreshes this object.
+
+        Note that this DOES update last_refreshed_data. 
+        """
+        self.title = dataJSON['title']
+        self.rules = dataJSON['rules_primary']
+        self.open = True if dataJSON['status']=="active" else False
+        self.open_time = datetime.fromisoformat(dataJSON['open_time'][0:-1])
+        self.close_time = datetime.fromisoformat(dataJSON['close_time'][0:-1])
+
+        self.last_refreshed_data = datetime.now()
 
     def refresh_data(self) -> None:
         apiRoot = self._get_api_root()
@@ -55,13 +69,7 @@ class KalshiMarket(Market):
             raise KalshiRequestError(f"Recieved status code {data.status_code} instead of 200. Ticker: {self.ticker}")
         
         dataJSON = data.json()['market']
-        self.title = dataJSON['title']
-        self.rules = dataJSON['rules_primary']
-        self.open = True if dataJSON['status']=="active" else False
-        self.open_time = datetime.fromisoformat(dataJSON['open_time'][0:-1])
-        self.close_time = datetime.fromisoformat(dataJSON['close_time'][0:-1])
-
-        self.last_refreshed_data = datetime.now()
+        self._load_data(dataJSON)
 
     def refresh_book(self) -> None:
         apiRoot = self._get_api_root()
@@ -88,7 +96,6 @@ class KalshiClient(Client):
     environment: Environment
     
     def __init__(self, key_id: str=None, private_key: str=None, environment: Environment=Environment.PROD):
-        super().__init__()
         self.key_id = key_id if key_id is not None else None
         self.private_key = private_key if private_key is not None else None
         self.environment = environment
@@ -98,8 +105,7 @@ class KalshiClient(Client):
         else:
             self.logged_in = True
 
-
-    def kalshi_get_markets(self, limit: int, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
+    def kalshi_get_markets(self, limit: int=None, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
         """ Gets <limit> markets from the <cursor> that have the given <status>. 
         Returns a list that contains a list of markets and the next cursor, respectively.
         
@@ -109,6 +115,9 @@ class KalshiClient(Client):
         """
         apiRoot = get_api_root(self.environment)
 
+        if limit is None:
+            limit = ""
+
         if cursor is None:
             cursor = ""
 
@@ -116,7 +125,7 @@ class KalshiClient(Client):
             status = ""
 
         params = {"limit": limit, "cursor": cursor, "status": status}
-        d = requests.get(f"{apiRoot}/events", params=params)
+        d = requests.get(f"{apiRoot}/markets", params=params)
 
         if d.status_code != 200:
             # TODO: TEST THIS
@@ -124,12 +133,15 @@ class KalshiClient(Client):
             if "error" in d.json():
                 err = f'\nError: \n{json.dumps(d.json()["error"])}'
             raise KalshiRequestError(f"Recieved status code {d.status_code} instead of 200. {err}")
-        
+        print(d.json())
         markets = d.json()["markets"]
         ret = [[]]
     
         for m in markets:
-            ret[0].append(KalshiMarket(m['ticker'], self.environment))
+            market = KalshiMarket(m['ticker'])
+            market._load_data(m) # load in the data the same way that refresh_data would
+
+            ret[0].append(market, self.environment)
 
         ret.append(d.json()['cursor'])
 

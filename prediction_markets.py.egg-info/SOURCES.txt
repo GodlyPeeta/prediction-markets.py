@@ -11,3 +11,4 @@ prediction_markets.py.egg-info/PKG-INFO
 prediction_markets.py.egg-info/SOURCES.txt
 prediction_markets.py.egg-info/dependency_links.txt
 prediction_markets.py.egg-info/top_level.txt
+tests/test_kalshi.py
