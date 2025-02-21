@@ -47,7 +47,8 @@ class OrderBook:
     no: list[list[int]]
 
     def __init__(self):
-        pass
+        self.yes = None
+        self.no = None
 
     def update_book(self, yes: list[list[int]]=None, no: list[list[int]]=None) -> None:
         """ Updates the books. Provide with None for no change
