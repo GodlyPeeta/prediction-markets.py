@@ -108,7 +108,7 @@ class KalshiClient(Client):
             # TODO: TEST THIS
             err = ""
             if "error" in d.json():
-                err = f"\nError: \n{json.dumps(d.json()["error"])}"
+                err = f'\nError: \n{json.dumps(d.json()["error"])}'
             raise KalshiRequestError(f"Recieved status code {d.status_code} instead of 200. {err}")
         
         markets = d.json()["markets"]
