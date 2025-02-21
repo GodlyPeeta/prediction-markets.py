@@ -3,6 +3,7 @@ from .client import *
 import requests
 from datetime import datetime
 from enum import Enum
+import json
 from .enums import *
 
 root="https://api.elections.kalshi.com/trade-api/v2"
@@ -11,6 +12,14 @@ demoRoot="https://demo-api.kalshi.co/trade-api/v2"
 class Environment(Enum):
     DEMO = "demo",
     PROD = "prod"
+
+def get_api_root(env: Environment) -> str:
+    """ Gets the API root
+    """
+    if env == Environment.DEMO:
+        return demoRoot
+    else:
+        return root
 
 class KalshiMarket(Market):
     """ A market on Kalshi
@@ -31,15 +40,12 @@ class KalshiMarket(Market):
     def __init__(self, ticker, demo=Environment.PROD):
         super().__init__()
         self.ticker = ticker
-        self.demo = demo
+        self.environment = demo
 
     def _get_api_root(self) -> str:
         """ Gets the api root URL for endpoints
         """
-        if self.demo == Environment.DEMO:
-            return demoRoot
-        else:
-            return root
+        return get_api_root(self.environment)
 
     def refresh_data(self) -> None:
         apiRoot = self._get_api_root()
@@ -78,7 +84,43 @@ class KalshiClient(Client):
     key_id: str
     private_key: str
     environment: Environment
+
+    def KalshiGetMarkets(self, limit: int, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
+        """ Gets <limit> markets from the <cursor> that have the given <status>. 
+        Returns a list that contains a list of markets and the next cursor, respectively.
+        
+        Note that the cursor is a page identifier. 
+
+        Note that the markets are instantiated but does NOT call update data. 
+        """
+        apiRoot = get_api_root(self.environment)
+
+        if cursor is None:
+            cursor = ""
+
+        if status is None:
+            status = ""
+
+        params = {"limit": limit, "cursor": cursor, "status": status}
+        d = requests.get(f"{apiRoot}/events", params=params)
+
+        if d.status_code != 200:
+            # TODO: TEST THIS
+            err = ""
+            if "error" in d.json():
+                err = f"\nError: \n{json.dumps(d.json()["error"])}"
+            raise KalshiRequestError(f"Recieved status code {d.status_code} instead of 200. {err}")
+        
+        markets = d.json()["markets"]
+        ret = [[]]
     
+        for m in markets:
+            ret[0].append(KalshiMarket(m['ticker'], self.environment))
+
+        ret.append(d.json()['cursor'])
+
+        return ret
+
 
 class KalshiOrder(Order):
     """ An order on Kalshi
@@ -91,6 +133,6 @@ class KalshiOrder(Order):
     
     def __init__(self, client, market, placed_price, quantity, side):
         super().__init__(client, market, placed_price, quantity, side)
-    
+
 class KalshiRequestError(Exception):
     pass
