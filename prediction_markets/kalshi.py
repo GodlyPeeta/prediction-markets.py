@@ -65,7 +65,7 @@ class KalshiMarket(Market):
             raise KalshiRequestError(f"Recieved status code {data.status_code} instead of 200. Ticker: {self.ticker}")
         
         dataJSON = data.json()['orderbook']
-        self.book.update_book(dataJSON['YES'], dataJSON['NO'])
+        self.book.update_book(dataJSON['yes'], dataJSON['no'])
 
 
 # TODO: test
