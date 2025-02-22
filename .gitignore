@@ -3,3 +3,4 @@ tempCodeRunnerFile.python
 dist/
 __pycache__/
 prediction_markets.egg-info/
+.hypothesis/
