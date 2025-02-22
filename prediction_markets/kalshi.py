@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import Enum
 import json
 from .enums import *
+from typing import List
 
 root="https://api.elections.kalshi.com/trade-api/v2"
 demoRoot="https://demo-api.kalshi.co/trade-api/v2"
@@ -39,6 +40,48 @@ class KalshiMarket(Market):
     ticker: str # the ticker used as id on kalshi
     environment: Environment # demo or prod
 
+    # this function exists to save latency on updating a lot of markets at once
+    def refresh_markets(markets: List[KalshiMarket]) -> None:
+        """ Refreshes all the markets in <markets> at once with minimal API calls.
+        """
+        
+        marketIdsProd = {}
+        marketIdsDemo = {}
+
+        for m in markets:
+            if m.environment == Environment.PROD:
+                marketIdsProd[m.ticker] = m
+            else:
+                marketIdsDemo[m.ticker] = m
+
+        for marketIds in [marketIdsDemo, marketIdsProd]:
+            if len(marketIds) == 0:
+                continue
+
+            s = ",".join(marketIds)
+            env = Environment.DEMO if marketIds is marketIdsDemo else Environment.PROD
+            params = {"tickers": s}
+            data = requests.get(f"{get_api_root(env)}/markets", params=params)
+
+            _check_api_response(data)
+
+            responseMarkets = data['markets']
+
+            # check if any instances of keyerror were logged, but still process the rest of them
+            gotKeyError = False
+            erroneousTickers = []
+
+            for m in responseMarkets:
+                ticker = m['ticker']
+
+                try:
+                    marketIds[ticker]._load_data(m)
+                except KeyError:
+                    gotKeyError = True
+                    erroneousTickers.append(ticker)
+
+            if gotKeyError:
+                raise KeyError(erroneousTickers)
 
     def __init__(self, ticker, demo=Environment.PROD):
         super().__init__()
@@ -105,7 +148,7 @@ class KalshiClient(Client):
         else:
             self.logged_in = True
 
-    def kalshi_get_markets(self, limit: int=None, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
+    def get_markets(self, limit: int=None, cursor:str=None, status:str=None) -> list[list[KalshiMarket], str]:
         """ Gets <limit> markets from the <cursor> that have the given <status>. 
         Returns a list that contains a list of markets and the next cursor, respectively.
         
@@ -129,15 +172,14 @@ class KalshiClient(Client):
 
         _check_api_response(d)
 
-        print(d.json())
         markets = d.json()["markets"]
         ret = [[]]
     
         for m in markets:
-            market = KalshiMarket(m['ticker'])
+            market = KalshiMarket(m['ticker'], self.environment)
             market._load_data(m) # load in the data the same way that refresh_data would
 
-            ret[0].append(market, self.environment)
+            ret[0].append(market)
 
         ret.append(d.json()['cursor'])
 

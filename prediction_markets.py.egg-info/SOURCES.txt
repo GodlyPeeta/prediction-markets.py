@@ -1,6 +1,7 @@
 LICENSE
 README.md
 pyproject.toml
+setup.py
 prediction_markets/__init__.py
 prediction_markets/client.py
 prediction_markets/enums.py
