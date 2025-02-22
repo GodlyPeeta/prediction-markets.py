@@ -2,4 +2,4 @@ tempCodeRunnerFile.python
 *.pyc
 dist/
 __pycache__/
-*.egg-info/
+prediction_markets.egg-info/
