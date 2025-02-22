@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .market import *
 from .client import *
 import requests
@@ -65,8 +67,7 @@ class KalshiMarket(Market):
         apiRoot = self._get_api_root()
         data = requests.get(f"{apiRoot}/markets/{self.ticker}")
 
-        if data.status_code != 200:
-            raise KalshiRequestError(f"Recieved status code {data.status_code} instead of 200. Ticker: {self.ticker}")
+        _check_api_response(data)
         
         dataJSON = data.json()['market']
         self._load_data(dataJSON)
@@ -75,8 +76,7 @@ class KalshiMarket(Market):
         apiRoot = self._get_api_root()
         data = requests.get(f"{apiRoot}/markets/{self.ticker}/orderbook")
 
-        if data.status_code != 200:
-            raise KalshiRequestError(f"Recieved status code {data.status_code} instead of 200. Ticker: {self.ticker}")
+        _check_api_response(data)
         
         dataJSON = data.json()['orderbook']
         self.book.update_book(dataJSON['yes'], dataJSON['no'])
@@ -127,12 +127,8 @@ class KalshiClient(Client):
         params = {"limit": limit, "cursor": cursor, "status": status}
         d = requests.get(f"{apiRoot}/markets", params=params)
 
-        if d.status_code != 200:
-            # TODO: TEST THIS
-            err = ""
-            if "error" in d.json():
-                err = f'\nError: \n{json.dumps(d.json()["error"])}'
-            raise KalshiRequestError(f"Recieved status code {d.status_code} instead of 200. {err}")
+        _check_api_response(d)
+
         print(d.json())
         markets = d.json()["markets"]
         ret = [[]]
@@ -159,6 +155,19 @@ class KalshiOrder(Order):
     
     def __init__(self, client, market, placed_price, quantity, side):
         super().__init__(client, market, placed_price, quantity, side)
+
+
+def _check_api_response(response: requests.Response) -> None:
+    if response.status_code == 200:
+        return
+    
+    try:
+        js = response.json()
+        error_msg = f'{json.dumps(js["error"])}'
+    except:
+        error_msg = f"Unkown error"
+    
+    raise KalshiRequestError(f"Recieved status code {response.status_code}: {error_msg}")
 
 class KalshiRequestError(Exception):
     pass
