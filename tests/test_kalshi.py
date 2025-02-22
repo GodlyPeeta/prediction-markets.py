@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-import pytest
-import os
-import sys
-
-here = os.path.dirname(__file__)
-
-sys.path.append(os.path.join(here, '..'))
+import unittest
+from hypothesis import given, settings
+from hypothesis.strategies import integers 
 
 from prediction_markets import *
 
-def main():
-    kc = KalshiClient()
+class TestKalshi(unittest.TestCase):
 
-    d = kc.kalshi_get_markets(10)
+    # @given(integers(min_value=1, max_value=1000))
+    # @settings(deadline=1000, max_examples=1)
+    def test_client_market_read_and_load(self):
+        num_markets = 20
+        kc = KalshiClient()
+        
+        markets = kc.get_markets(limit=num_markets)[0]
+        self.assertEqual(len(markets), num_markets)
 
-    print(d)
+        KalshiMarket.refresh_markets(markets)
 
-main()
+        for m in markets:
+            self.assertIsNotNone(m.last_refreshed_data)
