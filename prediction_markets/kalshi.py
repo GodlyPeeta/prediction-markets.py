@@ -61,11 +61,16 @@ class KalshiMarket(Market):
             s = ",".join(marketIds)
             env = Environment.DEMO if marketIds is marketIdsDemo else Environment.PROD
             params = {"tickers": s}
+
+            # check for URL too long 414 error
+            if len(s) > 2000 - len(get_api_root(env)) - 9:
+                raise KalshiURLTooLong("URL too long, try splitting this call into smaller calls")
+            
             data = requests.get(f"{get_api_root(env)}/markets", params=params)
 
             _check_api_response(data)
-
-            responseMarkets = data['markets']
+            
+            responseMarkets = data.json()['markets']
 
             # check if any instances of keyerror were logged, but still process the rest of them
             gotKeyError = False
@@ -210,6 +215,9 @@ def _check_api_response(response: requests.Response) -> None:
         error_msg = f"Unkown error"
     
     raise KalshiRequestError(f"Recieved status code {response.status_code}: {error_msg}")
+
+class KalshiURLTooLong(Exception):
+    pass
 
 class KalshiRequestError(Exception):
     pass
