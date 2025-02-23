@@ -40,6 +40,47 @@ class KalshiMarket(Market):
     ticker: str # the ticker used as id on kalshi
     environment: Environment # demo or prod
 
+    def __init__(self, ticker, demo=Environment.PROD):
+        super().__init__()
+        self.ticker = ticker
+        self.environment = demo
+
+    def _get_api_root(self) -> str:
+        """ Gets the api root URL for endpoints
+        """
+        return get_api_root(self.environment)
+    
+    def _load_data(self, dataJSON: dict) -> None:
+        """ Interprets data given from the Kalshi API and refreshes this object.
+
+        Note that this DOES update last_refreshed_data. 
+        """
+        self.title = dataJSON['title']
+        self.rules = dataJSON['rules_primary']
+        self.open = True if dataJSON['status']=="active" else False
+        self.open_time = datetime.fromisoformat(dataJSON['open_time'][0:-1])
+        self.close_time = datetime.fromisoformat(dataJSON['close_time'][0:-1])
+
+        self.last_refreshed_data = datetime.now()
+
+    def refresh_data(self) -> None:
+        apiRoot = self._get_api_root()
+        data = requests.get(f"{apiRoot}/markets/{self.ticker}")
+
+        _check_api_response(data)
+        
+        dataJSON = data.json()['market']
+        self._load_data(dataJSON)
+
+    def refresh_book(self) -> None:
+        apiRoot = self._get_api_root()
+        data = requests.get(f"{apiRoot}/markets/{self.ticker}/orderbook")
+
+        _check_api_response(data)
+        
+        dataJSON = data.json()['orderbook']
+        self.book.update_book(dataJSON['yes'], dataJSON['no'])
+
     # this function exists to save latency on updating a lot of markets at once
     def refresh_markets(markets: List[KalshiMarket]) -> None:
         """ Refreshes all the markets in <markets> at once with minimal API calls.
@@ -87,47 +128,6 @@ class KalshiMarket(Market):
 
             if gotKeyError:
                 raise KeyError(erroneousTickers)
-
-    def __init__(self, ticker, demo=Environment.PROD):
-        super().__init__()
-        self.ticker = ticker
-        self.environment = demo
-
-    def _get_api_root(self) -> str:
-        """ Gets the api root URL for endpoints
-        """
-        return get_api_root(self.environment)
-    
-    def _load_data(self, dataJSON: dict) -> None:
-        """ Interprets data given from the Kalshi API and refreshes this object.
-
-        Note that this DOES update last_refreshed_data. 
-        """
-        self.title = dataJSON['title']
-        self.rules = dataJSON['rules_primary']
-        self.open = True if dataJSON['status']=="active" else False
-        self.open_time = datetime.fromisoformat(dataJSON['open_time'][0:-1])
-        self.close_time = datetime.fromisoformat(dataJSON['close_time'][0:-1])
-
-        self.last_refreshed_data = datetime.now()
-
-    def refresh_data(self) -> None:
-        apiRoot = self._get_api_root()
-        data = requests.get(f"{apiRoot}/markets/{self.ticker}")
-
-        _check_api_response(data)
-        
-        dataJSON = data.json()['market']
-        self._load_data(dataJSON)
-
-    def refresh_book(self) -> None:
-        apiRoot = self._get_api_root()
-        data = requests.get(f"{apiRoot}/markets/{self.ticker}/orderbook")
-
-        _check_api_response(data)
-        
-        dataJSON = data.json()['orderbook']
-        self.book.update_book(dataJSON['yes'], dataJSON['no'])
 
 
 # TODO: test
