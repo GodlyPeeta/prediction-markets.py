@@ -105,7 +105,7 @@ class KalshiMarket(Market):
 
             # check for URL too long 414 error
             if len(s) > 2000 - len(get_api_root(env)) - 9:
-                raise KalshiURLTooLong("URL too long, try splitting this call into smaller calls")
+                raise KalshiURLParamError("URL too long, try splitting this call into smaller calls")
             
             data = requests.get(f"{get_api_root(env)}/markets", params=params)
 
@@ -130,7 +130,6 @@ class KalshiMarket(Market):
                 raise KeyError(erroneousTickers)
 
 
-# TODO: test
 # example code from kalshi demo: https://github.com/Kalshi/kalshi-starter-code-python/blob/main/clients.py
 #                                https://github.com/Kalshi/kalshi-starter-code-python/blob/main/main.py
 #                                https://trading-api.readme.io/reference/api-keys
@@ -162,6 +161,9 @@ class KalshiClient(Client):
         Note that the markets are instantiated but does NOT call update data. 
         """
         apiRoot = get_api_root(self.environment)
+
+        if limit <= 0:
+            raise KalshiURLParamError("Non positive limit given")
 
         if limit is None:
             limit = ""
@@ -216,7 +218,7 @@ def _check_api_response(response: requests.Response) -> None:
     
     raise KalshiRequestError(f"Recieved status code {response.status_code}: {error_msg}")
 
-class KalshiURLTooLong(Exception):
+class KalshiURLParamError(Exception):
     pass
 
 class KalshiRequestError(Exception):
