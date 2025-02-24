@@ -21,7 +21,6 @@ class PMMarket(Market):
     question_id: str # not super sure what this is used for but store anyway
     token_ids: dict[str, str] # the token strings to "yes" and "no" respectively
 
-    def __init__(self):
+    def __init__(self, condition_id):
         super().__init__()
-
-    
+        self.condition_id = condition_id

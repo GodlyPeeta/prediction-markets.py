@@ -8,6 +8,7 @@ from enum import Enum
 import json
 from .enums import *
 from typing import List
+from exceptions import *
 
 root="https://api.elections.kalshi.com/trade-api/v2"
 demoRoot="https://demo-api.kalshi.co/trade-api/v2"
@@ -105,7 +106,7 @@ class KalshiMarket(Market):
 
             # check for URL too long 414 error
             if len(s) > 2000 - len(get_api_root(env)) - 9:
-                raise KalshiURLParamError("URL too long, try splitting this call into smaller calls")
+                raise URLParamError("URL too long, try splitting this call into smaller calls")
             
             data = requests.get(f"{get_api_root(env)}/markets", params=params)
 
@@ -163,7 +164,7 @@ class KalshiClient(Client):
         apiRoot = get_api_root(self.environment)
 
         if limit <= 0:
-            raise KalshiURLParamError("Non positive limit given")
+            raise URLParamError("Non positive limit given")
 
         if limit is None:
             limit = ""
@@ -216,10 +217,4 @@ def _check_api_response(response: requests.Response) -> None:
     except:
         error_msg = f"Unkown error"
     
-    raise KalshiRequestError(f"Recieved status code {response.status_code}: {error_msg}")
-
-class KalshiURLParamError(Exception):
-    pass
-
-class KalshiRequestError(Exception):
-    pass
+    raise APIRequestError(f"Recieved status code {response.status_code}: {error_msg}")
