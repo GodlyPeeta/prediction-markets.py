@@ -1,8 +1,13 @@
 from .market import *
 import requests
 from datetime import datetime
+from exceptions import *
+import json
 
-root="https://clob.polymarket.com"
+# The CLOB is for api requests related to order books and anything writable, the gamma is read only. 
+# However, they still have overlap in coverage and program should switch between them depending on what is more appropriate for the task
+clobRoot="https://clob.polymarket.com"
+gammaRoot="https://gamma-api.polymarket.com"
 
 class PMMarket(Market):
     """ A market on Polymarket
@@ -18,9 +23,23 @@ class PMMarket(Market):
     last_refreshed_book: datetime
 
     condition_id: str # used to search via endpoints
-    question_id: str # not super sure what this is used for but store anyway
     token_ids: dict[str, str] # the token strings to "yes" and "no" respectively
 
     def __init__(self, condition_id):
         super().__init__()
         self.condition_id = condition_id
+
+    def refresh_data(self):
+        pass
+
+def _check_api_response(response: requests.Response) -> None:
+    if response.status_code == 200:
+        return
+    
+    try:
+        js = response.json()
+        error_msg = f'{json.dumps(js["error"])}'
+    except:
+        error_msg = f"Unkown error"
+    
+    raise APIRequestError(f"Recieved status code {response.status_code}: {error_msg}")
