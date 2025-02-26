@@ -8,7 +8,9 @@ from enum import Enum
 import json
 from .enums import *
 from typing import List
-from exceptions import *
+from .exceptions import *
+from dateutil.parser import isoparse
+
 
 root="https://api.elections.kalshi.com/trade-api/v2"
 demoRoot="https://demo-api.kalshi.co/trade-api/v2"
@@ -59,8 +61,9 @@ class KalshiMarket(Market):
         self.title = dataJSON['title']
         self.rules = dataJSON['rules_primary']
         self.open = True if dataJSON['status']=="active" else False
-        self.open_time = datetime.fromisoformat(dataJSON['open_time'][0:-1])
-        self.close_time = datetime.fromisoformat(dataJSON['close_time'][0:-1])
+        # print(dataJSON['open_time'])
+        self.open_time = isoparse(dataJSON['open_time'])
+        self.close_time = isoparse(dataJSON['close_time'])
 
         self.last_refreshed_data = datetime.now()
 
@@ -105,7 +108,7 @@ class KalshiMarket(Market):
             params = {"tickers": s}
 
             # check for URL too long 414 error
-            if len(s) > 2000 - len(get_api_root(env)) - 9:
+            if len(s) > 8192 - len(get_api_root(env)) - len(s) - 9:
                 raise URLParamError("URL too long, try splitting this call into smaller calls")
             
             data = requests.get(f"{get_api_root(env)}/markets", params=params)
