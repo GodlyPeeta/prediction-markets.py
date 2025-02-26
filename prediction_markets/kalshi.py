@@ -106,11 +106,12 @@ class KalshiMarket(Market):
             s = ",".join(marketIds)
             env = Environment.DEMO if marketIds is marketIdsDemo else Environment.PROD
             params = {"tickers": s}
-
-            # check for URL too long 414 error
-            if len(s) > 8192 - len(get_api_root(env)) - len(s) - 9:
-                raise URLParamError("URL too long, try splitting this call into smaller calls")
             
+            # check for URL too long 414/413 error
+            length = len(requests.Request('GET', f"{get_api_root(env)}/markets", params=params).prepare().url)
+            if length > 8192:
+                raise URLParamError("URL too long, try splitting this call into smaller calls")
+
             data = requests.get(f"{get_api_root(env)}/markets", params=params)
 
             _check_api_response(data)
