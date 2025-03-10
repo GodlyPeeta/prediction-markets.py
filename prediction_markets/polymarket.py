@@ -11,6 +11,11 @@ from typing import List
 from .exceptions import *
 from dateutil.parser import isoparse
 
+from py_clob_client.constants import POLYGON
+from py_clob_client.client import ClobClient
+from py_clob_client.clob_types import OrderArgs
+from py_clob_client.order_builder.constants import BUY
+
 # The CLOB is for api requests related to order books and anything writable, the gamma is read only. 
 # However, they still have overlap in coverage and program should switch between them depending on what is more appropriate for the task
 clobRoot="https://clob.polymarket.com"
@@ -89,6 +94,15 @@ class PMMarket(Market):
         
         if gotKeyError:
             raise KeyError(erroneousTickers)
+
+class PolymarketClient(Client):
+    """ A single client on PM. Uses HTTP connections
+    """
+    clob_client: ClobClient
+    logged_in: bool
+    
+    # only supports L2 headers for now 
+    def __init__(self, ):
 
 
 def _check_api_response(response: requests.Response) -> None:

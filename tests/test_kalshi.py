@@ -5,7 +5,7 @@ from hypothesis.strategies import integers
 
 from prediction_markets import *
 
-@given(integers(min_value=1, max_value=50))
+@given(integers(min_value=1, max_value=200))
 @settings(deadline=1000, max_examples=10)
 def test_client_market_read_and_load(num_markets):
     kc = KalshiClient()
